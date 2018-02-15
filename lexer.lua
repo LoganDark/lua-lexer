@@ -315,28 +315,22 @@ return function(text)
 	local lineoffset = 0
 
 	local function token(type, text)
-		local tk = buffer[#buffer]
+		text = text or getToken()
 
-		if not tk or tk.type ~= type then
-			local tk = {
-				type = type,
-				data = text or getToken(),
-				posFirst = start - lineoffset,
-				posLast = pos - 1 - lineoffset
-			}
+		local tk = {
+			type = type,
+			data = text,
+			posFirst = start - lineoffset,
+			posLast = pos - 1 - lineoffset
+		}
 
-			if tk.data ~= '' then
-				buffer[#buffer + 1] = tk
-			end
-		else
-			tk.data = tk.data .. (text or getToken())
-			tk.posLast = tk.posFirst + #tk.data - 1
-			--tk.posLast = getCol(pos - 1)
+		if tk.data ~= '' then
+			buffer[#buffer + 1] = tk
 		end
 
-		currentLineLength = currentLineLength + (text or getToken()):len()
-
+		currentLineLength = currentLineLength + text:len()
 		start = pos
+
 		return tk
 	end
 
