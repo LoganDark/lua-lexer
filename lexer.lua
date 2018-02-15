@@ -270,7 +270,7 @@ local keywords = {
 	}
 }
 
-return function lex(text)
+return function(text)
 	local pos = 1
 	local start = 1
 	local len = #text
