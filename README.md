@@ -30,7 +30,7 @@ Each token can have one of the following types:
 - `ident`: Identifier. Variables, function names, etc
 - `number`: Numbers, including both base 10 (and scientific notation) and hexadecimal
 - `symbol`: Symbols, like brackets, parenthesis, ., .., ... etc
-- `operator`: Operators, like =, ==, >=, <=, ~=, etc
+- `operator`: Operators, like `+`, `-`, `%`, `=`, `==`, `>=`, `<=`, `~=`, etc
 - `unidentified`: Anything that isn't one of the above tokens. Consider them errors. Invalid escapes are also unidentified.
 
 ## Example
