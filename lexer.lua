@@ -20,260 +20,66 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+function lookupify(src, list)
+	list = list or {}
+
+	if type(src) == 'string' then
+		for i = 1, src:len() do
+			list[src:sub(i, i)] = true
+		end
+	elseif type(src) == 'table' then
+		for i = 1, #src do
+			list[src[i]] = true
+		end
+	end
+
+	return list
+end
+
+local base_ident = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
+local base_digits = '0123456789'
+local base_operators = '+-*/^%#'
+
 local chars = {
-	whitespace = {
-		[' '] = true,
-		['\n'] = true,
-		['\t'] = true,
-		['\r'] = true
-	},
-
-	validEscapes = {
-		['a'] = true,
-		['b'] = true,
-		['f'] = true,
-		['n'] = true,
-		['r'] = true,
-		['t'] = true,
-		['v'] = true,
-		['"'] = true,
-		['\''] = true,
-		['\\'] = true,
-		['\n'] = true
-	},
-
-	ident = {
-		['a'] = true,
-		['b'] = true,
-		['c'] = true,
-		['d'] = true,
-		['e'] = true,
-		['f'] = true,
-		['g'] = true,
-		['h'] = true,
-		['i'] = true,
-		['j'] = true,
-		['k'] = true,
-		['l'] = true,
-		['m'] = true,
-		['n'] = true,
-		['o'] = true,
-		['p'] = true,
-		['q'] = true,
-		['r'] = true,
-		['s'] = true,
-		['t'] = true,
-		['u'] = true,
-		['v'] = true,
-		['w'] = true,
-		['x'] = true,
-		['y'] = true,
-		['z'] = true,
-		['A'] = true,
-		['B'] = true,
-		['C'] = true,
-		['D'] = true,
-		['E'] = true,
-		['F'] = true,
-		['G'] = true,
-		['H'] = true,
-		['I'] = true,
-		['J'] = true,
-		['K'] = true,
-		['L'] = true,
-		['M'] = true,
-		['N'] = true,
-		['O'] = true,
-		['P'] = true,
-		['Q'] = true,
-		['R'] = true,
-		['S'] = true,
-		['T'] = true,
-		['U'] = true,
-		['V'] = true,
-		['W'] = true,
-		['X'] = true,
-		['Y'] = true,
-		['Z'] = true,
-		['_'] = true,
-		['0'] = true,
-		['1'] = true,
-		['2'] = true,
-		['3'] = true,
-		['4'] = true,
-		['5'] = true,
-		['6'] = true,
-		['7'] = true,
-		['8'] = true,
-		['9'] = true,
-
-		start = {
-			['a'] = true,
-			['b'] = true,
-			['c'] = true,
-			['d'] = true,
-			['e'] = true,
-			['f'] = true,
-			['g'] = true,
-			['h'] = true,
-			['i'] = true,
-			['j'] = true,
-			['k'] = true,
-			['l'] = true,
-			['m'] = true,
-			['n'] = true,
-			['o'] = true,
-			['p'] = true,
-			['q'] = true,
-			['r'] = true,
-			['s'] = true,
-			['t'] = true,
-			['u'] = true,
-			['v'] = true,
-			['w'] = true,
-			['x'] = true,
-			['y'] = true,
-			['z'] = true,
-			['A'] = true,
-			['B'] = true,
-			['C'] = true,
-			['D'] = true,
-			['E'] = true,
-			['F'] = true,
-			['G'] = true,
-			['H'] = true,
-			['I'] = true,
-			['J'] = true,
-			['K'] = true,
-			['L'] = true,
-			['M'] = true,
-			['N'] = true,
-			['O'] = true,
-			['P'] = true,
-			['Q'] = true,
-			['R'] = true,
-			['S'] = true,
-			['T'] = true,
-			['U'] = true,
-			['V'] = true,
-			['W'] = true,
-			['X'] = true,
-			['Y'] = true,
-			['Z'] = true,
-			['_'] = true
-		},
-	},
-
-	digits = {
-		['0'] = true,
-		['1'] = true,
-		['2'] = true,
-		['3'] = true,
-		['4'] = true,
-		['5'] = true,
-		['6'] = true,
-		['7'] = true,
-		['8'] = true,
-		['9'] = true,
-
-		hex = {
-			['0'] = true,
-			['1'] = true,
-			['2'] = true,
-			['3'] = true,
-			['4'] = true,
-			['5'] = true,
-			['6'] = true,
-			['7'] = true,
-			['8'] = true,
-			['9'] = true,
-			['a'] = true,
-			['b'] = true,
-			['c'] = true,
-			['d'] = true,
-			['e'] = true,
-			['f'] = true,
-			['A'] = true,
-			['B'] = true,
-			['C'] = true,
-			['D'] = true,
-			['E'] = true,
-			['F'] = true
+	whitespace = lookupify(' \n\t\r'),
+	validEscapes = lookupify('abfnrtv"\'\\\n'),
+	ident = lookupify(
+		base_ident .. base_digits,
+		{
+			start = lookupify(base_ident),
 		}
-	},
+	),
 
-	symbols = {
-		['+'] = true,
-		['-'] = true,
-		['*'] = true,
-		['/'] = true,
-		['^'] = true,
-		['%'] = true,
-		[','] = true,
-		['{'] = true,
-		['}'] = true,
-		['['] = true,
-		[']'] = true,
-		['('] = true,
-		[')'] = true,
-		[';'] = true,
-		['#'] = true,
-		['.'] = true,
-		[':'] = true,
-
-		equality = {
-			['~'] = true,
-			['='] = true,
-			['>'] = true,
-			['<'] = true
-		},
-
-		operators = {
-			['+'] = true,
-			['-'] = true,
-			['*'] = true,
-			['/'] = true,
-			['^'] = true,
-			['%'] = true,
-			['#'] = true
+	digits = lookupify(
+		base_digits,
+		{
+			hex = lookupify(base_digits .. 'abcdefABCDEF')
 		}
-	}
+	),
+
+	symbols = lookupify(
+		base_operators .. ',{}[]();.:', {
+			equality = lookupify('~=><'),
+			operators = lookupify(base_operators)
+		}
+	)
 }
 
 local keywords = {
-	structure = {
-		['and'] = true,
-		['break'] = true,
-		['do'] = true,
-		['else'] = true,
-		['elseif'] = true,
-		['end'] = true,
-		['for'] = true,
-		['function'] = true,
-		['goto'] = true,
-		['if'] = true,
-		['in'] = true,
-		['local'] = true,
-		['not'] = true,
-		['or'] = true,
-		['repeat'] = true,
-		['return'] = true,
-		['then'] = true,
-		['until'] = true,
-		['while'] = true
-	},
+	structure = lookupify({
+		'and', 'break', 'do', 'else', 'elseif', 'end', 'for', 'function',
+		'goto', 'if', 'in', 'local', 'not', 'or', 'repeat', 'return', 'then',
+		'until', 'while'
+	}),
 
-	values = {
-		['true'] = true,
-		['false'] = true,
-		['nil'] = true
-	}
+	values = lookupify({
+		'true', 'false', 'nil'
+	})
 }
 
 return function(text)
 	local pos = 1
 	local start = 1
-	local len = #text
 	local buffer = {}
 	local lines = {}
 
@@ -284,14 +90,12 @@ return function(text)
 	end
 
 	local function get()
-		local char = text:sub(pos, pos)
-
 		pos = pos + 1
 
-		return char
+		return look(-1)
 	end
 
-	local function getLevel()
+	local function getDataLevel()
 		local num = 0
 
 		while look(num) == '=' do
@@ -299,23 +103,21 @@ return function(text)
 		end
 
 		if look(num) == '[' then
-			pos = pos + num
+			pos = pos + num + 1
 
 			return num
-		else
-			return nil
 		end
 	end
 
-	local function getToken()
+	local function getCurrentTokenText()
 		return text:sub(start, pos - 1)
 	end
 
 	local currentLineLength = 0
 	local lineoffset = 0
 
-	local function token(type, text)
-		text = text or getToken()
+	local function pushToken(type, text)
+		text = text or getCurrentTokenText()
 
 		local tk = {
 			type = type,
@@ -337,9 +139,11 @@ return function(text)
 	local function newline()
 		lines[#lines + 1] = buffer
 		buffer = {}
+
 		get()
-		token('newline')
+		pushToken('newline')
 		buffer[1] = nil
+
 		lineoffset = lineoffset + currentLineLength
 		currentLineLength = 0
 	end
@@ -352,7 +156,7 @@ return function(text)
 				return
 			elseif char == '\n' then
 				pos = pos - 1
-				token(type)
+				pushToken(type)
 				newline()
 			elseif char == ']' then
 				local valid = true
@@ -367,7 +171,7 @@ return function(text)
 				end
 
 				if valid and look() == ']' then
-					pos = pos + 1
+					pos = pos - level - 1
 
 					return
 				end
@@ -380,7 +184,7 @@ return function(text)
 			local char = look()
 
 			if char == '\n' then
-				token('whitespace')
+				pushToken('whitespace')
 				newline()
 			elseif chars.whitespace[char] then
 				pos = pos + 1
@@ -389,7 +193,7 @@ return function(text)
 			end
 		end
 
-		token('whitespace')
+		pushToken('whitespace')
 
 		local char = get()
 
@@ -401,17 +205,20 @@ return function(text)
 			if look() == '[' then
 				pos = pos + 1
 
-				local level = getLevel()
+				local level = getDataLevel()
 
 				if level then
 					getData(level, 'comment')
+
+					pos = pos + level + 2
+					pushToken('comment')
 				else
 					while true do
 						local char2 = get()
 
 						if char2 == '' or char2 == '\n' then
 							pos = pos - 1
-							token('comment')
+							pushToken('comment')
 
 							if char2 == '\n' then
 								newline()
@@ -427,7 +234,7 @@ return function(text)
 
 					if char2 == '' or char2 == '\n' then
 						pos = pos - 1
-						token('comment')
+						pushToken('comment')
 
 						if char2 == '\n' then
 							newline()
@@ -438,14 +245,16 @@ return function(text)
 				end
 			end
 
-			token('comment')
+			pushToken('comment')
 		elseif char == '\'' or char == '"' then
+			pushToken('string_start')
+
 			while true do
 				local char2 = get()
 
 				if char2 == '\\' then
 					pos = pos - 1
-					token('string')
+					pushToken('string')
 					get()
 
 					local char3 = get()
@@ -460,42 +269,46 @@ return function(text)
 						if chars.digits.hex[look()] and chars.digits.hex[look(1)] then
 							pos = pos + 2
 						else
-							token('unidentified')
+							pushToken('unidentified')
 						end
 					elseif char3 == '\n' then
 						pos = pos - 1
-						token('escape')
+						pushToken('escape')
 						newline()
 					elseif not chars.validEscapes[char3] then
-                        token('unidentified')
+						pushToken('unidentified')
 					end
 
-					token('escape')
+					pushToken('escape')
 				elseif char2 == '\n' then
 					pos = pos - 1
-					token('string')
+					pushToken('string')
 					newline()
 
 					break
 				elseif char2 == char or char2 == '' then
+					pos = pos - 1
+					pushToken('string')
+					get()
+
 					break
 				end
 			end
 
-			token('string')
+			pushToken('string_end')
 		elseif chars.ident.start[char] then
 			while chars.ident[look()] do
 				pos = pos + 1
 			end
 
-			local word = getToken()
+			local word = getCurrentTokenText()
 
 			if keywords.structure[word] then
-				token('keyword')
+				pushToken('keyword')
 			elseif keywords.values[word] then
-				token('value')
+				pushToken('value')
 			else
-				token('ident')
+				pushToken('ident')
 			end
 		elseif chars.digits[char] or (char == '.' and chars.digits[look()]) then
 			if char == '0' and look() == 'x' then
@@ -530,15 +343,20 @@ return function(text)
 				end
 			end
 
-			token('number')
+			pushToken('number')
 		elseif char == '[' then
-			local level = getLevel()
+			local level = getDataLevel()
 
 			if level then
+				pushToken('string_start')
+
 				getData(level, 'string')
-				token('string')
+				pushToken('string')
+
+				pos = pos + level + 2
+				pushToken('string_end')
 			else
-				token('symbol')
+				pushToken('symbol')
 			end
 		elseif char == '.' then
 			if look() == '.' then
@@ -549,21 +367,25 @@ return function(text)
 				end
 			end
 
-			token('symbol')
+			if getCurrentTokenText():len() == 3 then
+				pushToken('vararg')
+			else
+				pushToken('symbol')
+			end
 		elseif chars.symbols.equality[char] then
 			if look() == '=' then
 				pos = pos + 1
 			end
 
-			token('operator')
+			pushToken('operator')
 		elseif chars.symbols[char] then
 			if chars.symbols.operators[char] then
-				token('operator')
+				pushToken('operator')
 			else
-				token('symbol')
+				pushToken('symbol')
 			end
 		else
-			token('unidentified')
+			pushToken('unidentified')
 		end
 	end
 

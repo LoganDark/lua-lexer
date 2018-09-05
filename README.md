@@ -23,13 +23,15 @@ Each token can have one of the following types:
 
 - `whitespace`: Spaces, newlines, tabs, and carriage returns
 - `comment`: Either multi-line or single-line comments
+- `string_start` and `string_end`: starts and ends of a string
 - `string`: Part of a string that isn't an escape
 - `escape`: A string escape, like \n, only found inside strings
 - `keyword`: Keywords. Like "while", "end", "do", etc
 - `value`: Special values. Only true, false, and nil
 - `ident`: Identifier. Variables, function names, etc
 - `number`: Numbers, including both base 10 (and scientific notation) and hexadecimal
-- `symbol`: Symbols, like brackets, parenthesis, ., .., ... etc
+- `symbol`: Symbols, like brackets, parenthesis, ., .., etc
+- `vararg`: `...`
 - `operator`: Operators, like =, ==, >=, <=, ~=, etc
 - `unidentified`: Anything that isn't one of the above tokens. Consider them errors. Invalid escapes are also unidentified.
 
