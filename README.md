@@ -23,7 +23,7 @@ Each token can have one of the following types:
 
 - `whitespace`: Spaces, newlines, tabs, and carriage returns
 - `comment`: Either multi-line or single-line comments
-- `string_start` and `string_end`: starts and ends of a string
+- `string_start` and `string_end`: starts and ends of a string. There will be no non-string tokens between these two.
 - `string`: Part of a string that isn't an escape
 - `escape`: A string escape, like \n, only found inside strings
 - `keyword`: Keywords. Like "while", "end", "do", etc
@@ -33,6 +33,8 @@ Each token can have one of the following types:
 - `symbol`: Symbols, like brackets, parenthesis, ., .., etc
 - `vararg`: `...`
 - `operator`: Operators, like `+`, `-`, `%`, `=`, `==`, `>=`, `<=`, `~=`, etc
+- `label_start` and `label_end`: The starts and ends of labels. Always equal to `'::'`. Between them there can only be `whitespace` and `label` tokens.
+- `label`: Basically an `ident` between a `label_start` and `label_end`.
 - `unidentified`: Anything that isn't one of the above tokens. Consider them errors. Invalid escapes are also unidentified.
 
 ## Example

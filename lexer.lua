@@ -42,7 +42,7 @@ local base_operators = '+-*/^%#'
 
 local chars = {
 	whitespace = lookupify(' \n\t\r'),
-	validEscapes = lookupify('abfnrtv"\'\\\n'),
+	validEscapes = lookupify('abfnrtv"\'\\'),
 	ident = lookupify(
 		base_ident .. base_digits,
 		{
@@ -119,15 +119,22 @@ return function(text)
 	local function pushToken(type, text)
 		text = text or getCurrentTokenText()
 
-		local tk = {
-			type = type,
-			data = text,
-			posFirst = start - lineoffset,
-			posLast = pos - 1 - lineoffset
-		}
+		local tk = buffer[#buffer]
 
-		if tk.data ~= '' then
-			buffer[#buffer + 1] = tk
+		if not tk or tk.type ~= type then
+			tk = {
+				type = type,
+				data = text,
+				posFirst = start - lineoffset,
+				posLast = pos - 1 - lineoffset
+			}
+
+			if tk.data ~= '' then
+				buffer[#buffer + 1] = tk
+			end
+		else
+			tk.data = tk.data .. text
+			tk.posLast = tk.posLast + text:len()
 		end
 
 		currentLineLength = currentLineLength + text:len()
@@ -179,7 +186,7 @@ return function(text)
 		end
 	end
 
-	while true do
+	local function chompWhitespace()
 		while true do
 			local char = look()
 
@@ -194,6 +201,10 @@ return function(text)
 		end
 
 		pushToken('whitespace')
+	end
+
+	while true do
+		chompWhitespace()
 
 		local char = get()
 
@@ -371,6 +382,31 @@ return function(text)
 				pushToken('vararg')
 			else
 				pushToken('symbol')
+			end
+		elseif char == ':' and look() == ':' then
+			get()
+
+			pushToken('label_start')
+
+			chompWhitespace()
+
+			if chars.ident.start[look()] then
+				get()
+
+				while chars.ident[look()] do
+					get()
+				end
+
+				pushToken('label')
+
+				chompWhitespace()
+
+				if look() == ':' and look(1) == ':' then
+					get()
+					get()
+
+					pushToken('label_end')
+				end
 			end
 		elseif chars.symbols.equality[char] then
 			if look() == '=' then
